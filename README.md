@@ -1,7 +1,3 @@
-Here’s a polished and more engaging version of your README text, keeping it professional but also fun and appealing for GitHub readers:
-
----
-
 # Persona Forge – Chatbot with Preset Personas
 
 **PersonaForge** is an AI-powered chatbot designed to make conversations smarter, more personal, and more fun.
@@ -19,10 +15,3 @@ With just a switch, the AI can transform from a friendly teacher into a witty st
 * **Persona Management** → Edit, delete, or save your favorite personas for quick access.
 * **Flexible Mode** → Bypass presets and send prompts directly when you just need a plain AI assistant.
 
----
-
-⚡ Whether you want productivity, creativity, or just a bit of fun—PersonaForge adapts to you.
-
----
-
-Do you want me to also add some **badges (e.g. built with, license, stars)** and a **screenshot/demo section** so it looks even more like a polished open-source project README?
