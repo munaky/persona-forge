@@ -6,7 +6,13 @@ export interface ChatRequestPayload {
     history: Message[];
 }
 
+export interface ChatState {
+    preset: Preset;
+    history: Message[];
+}
+
 export interface Preset {
+    id: string;
     name: string;
     description: string;
     thinking: boolean;
