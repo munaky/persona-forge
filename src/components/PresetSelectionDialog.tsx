@@ -9,7 +9,7 @@ import { useEffect, useState } from "react";
 import { presetsApi } from "@/lib/api/client/preset";
 
 const defaultPresets: Preset = {
-    _id: crypto.randomUUID(),
+    id: crypto.randomUUID(),
     name: 'Custom',
     description: 'Build your own preset.',
     config: { systemInstruction: '' },
@@ -27,7 +27,7 @@ export default function PresetSelectionDialog({ chatState, setChatState }: Prese
     const [presets, setPresets] = useState<Preset[]>([]);
 
     const setPreset = (presetId: string) => {
-        const newPreset = presets.find(p => p._id === presetId);
+        const newPreset = presets.find(p => p.id === presetId);
 
         setChatState(chatState && { ...chatState, preset: newPreset || defaultPresets });
     }
@@ -59,8 +59,8 @@ export default function PresetSelectionDialog({ chatState, setChatState }: Prese
                 <div className="mt-4 space-y-3">
                     {presets.map((preset) => (
                         <DialogTrigger 
-                        key={preset._id}
-                        onClick={() => setPreset(preset._id)}
+                        key={preset.id}
+                        onClick={() => setPreset(preset.id)}
                         className="w-full text-left max-h-[80vh]" 
                         >
                             <Card
