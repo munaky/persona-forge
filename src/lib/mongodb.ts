@@ -1,4 +1,6 @@
-import { MongoClient, Db } from "mongodb";
+export const runtime = "nodejs";
+
+import { MongoClient, Db, ServerApiVersion } from "mongodb";
 
 let client: MongoClient;
 let clientPromise: Promise<MongoClient>;
@@ -8,7 +10,9 @@ if (!process.env.MONGODB_URI) {
 }
 
 const uri = process.env.MONGODB_URI;
-const options = {};
+const options = {
+  
+};
 
 declare global {
   var _mongoClientPromise: Promise<MongoClient>;
