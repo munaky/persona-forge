@@ -1,52 +1,57 @@
 "use client";
 
-import * as React from "react";
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
 import { ChatState, Preset } from "@/types/chat";
+import { useEffect, useState } from "react";
+import { presetsApi } from "@/lib/api/client/preset";
 
 const defaultPresets: Preset = {
-    id: crypto.randomUUID(),
-    name: 'None',
-    description: 'Default preset.',
+    _id: crypto.randomUUID(),
+    name: 'Custom',
+    description: 'Build your own preset.',
     config: { systemInstruction: '' },
     remember: false,
     thinking: false,
 
 }
-const presets: Preset[] = [
-    defaultPresets,
-    {
-        id: crypto.randomUUID(),
-        name: 'Creative',
-        description: 'Preset for creative tasks.',
-        config: { systemInstruction: 'You are a creative assistant.' },
-        remember: true,
-        thinking: true,
-    },
-];
 
 interface PresetSelectionDialogProps {
     chatState: ChatState | null;
     setChatState: (state: ChatState | null) => void;
 }
 
-
 export default function PresetSelectionDialog({ chatState, setChatState }: PresetSelectionDialogProps) {
+    const [presets, setPresets] = useState<Preset[]>([]);
+
     const setPreset = (presetId: string) => {
-        const newPreset = presets.find(p => p.id === presetId);
+        const newPreset = presets.find(p => p._id === presetId);
 
         setChatState(chatState && { ...chatState, preset: newPreset || defaultPresets });
     }
+
+    useEffect(() => {
+        async function fn() {
+            try {
+                const res = await presetsApi.getPresets();
+                console.log('Fetched presets:', res.data);
+                setPresets([defaultPresets, ...res.data]);
+            } catch (error) {
+                console.error("Error fetching presets:", error);
+            }
+        }
+
+        fn();
+    }, []);
 
     return (
         <Dialog>
             <DialogTrigger asChild>
                 <Button>Change Preset</Button>
             </DialogTrigger>
-            <DialogContent className="max-w-md">
+            <DialogContent className="max-w-md" aria-describedby={undefined}>
                 <DialogHeader>
                     <DialogTitle>Preset Selection</DialogTitle>
                 </DialogHeader>
@@ -54,8 +59,8 @@ export default function PresetSelectionDialog({ chatState, setChatState }: Prese
                 <div className="mt-4 space-y-3">
                     {presets.map((preset) => (
                         <DialogTrigger 
-                        key={preset.id}
-                        onClick={() => setPreset(preset.id)}
+                        key={preset._id}
+                        onClick={() => setPreset(preset._id)}
                         className="w-full text-left max-h-[80vh]" 
                         >
                             <Card

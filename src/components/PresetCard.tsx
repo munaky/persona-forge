@@ -10,7 +10,7 @@ interface PresetCardProps {
 }
 
 const defaultPresets: Preset = {
-    id: crypto.randomUUID(),
+    _id: crypto.randomUUID(),
     name: 'None',
     description: 'Default preset.',
     config: { systemInstruction: '' },
@@ -49,7 +49,7 @@ export default function PresetCard({ chatState, setChatState }: PresetCardProps)
             <PresetSelectionDialog chatState={chatState} setChatState={setChatState} />
 
             {/* Preset Name */}
-            <h2 className="text-lg font-semibold border-b-2">Current Preset: {preset.name}</h2>
+            <h2 className="text-lg font-semibold border-b-2">{preset.name}</h2>
 
             {/* System Instruction */}
             <div className="flex flex-col">

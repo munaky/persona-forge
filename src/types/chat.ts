@@ -12,7 +12,7 @@ export interface ChatState {
 }
 
 export interface Preset {
-    id: string;
+    _id: string;
     name: string;
     description: string;
     thinking: boolean;
