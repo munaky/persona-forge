@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { Chat, GoogleGenAI } from "@google/genai";
+import { GoogleGenAI } from "@google/genai";
 import { ChatRequestPayload } from "@/types/chat";
 import { resSuccess } from "@/lib/response-format";
 
