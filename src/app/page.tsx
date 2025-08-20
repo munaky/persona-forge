@@ -1,9 +1,53 @@
+'use client';
+
 import ChatBoard from "@/components/ChatBoard";
+import FullScreenLoader from "@/components/FullScreenLoading";
+import PresetCard from "@/components/PresetCard";
+import { ChatState } from "@/types/chat";
+import { useEffect, useState } from "react";
+
+const defaultChatState: ChatState = {
+  preset: {
+    id: "new",
+    name: "Default",
+    description: "Default preset for chat",
+    thinking: false,
+    remember: true,
+    config: {
+      systemInstruction: "You are a helpful assistant.",
+    },
+  },
+  history: [],
+}
+
 
 export default function Main() {
+  const [chatState, setChatState] = useState<ChatState | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    const chatStateFromStorage = localStorage.getItem("chatState");
+    if (chatStateFromStorage) {
+      setChatState(JSON.parse(chatStateFromStorage));
+    } else {
+      setChatState(defaultChatState);
+    }
+    setLoading(false);
+  }, [])
+
+  useEffect(() => {
+    if (chatState) {
+      localStorage.setItem("chatState", JSON.stringify(chatState));
+    }
+  }, [chatState]);
+
   return (
-    <div>
-      <ChatBoard />
+    <>
+    <div className="flex overflow-hidden h-screen">
+      <FullScreenLoader loading={loading} />
+      <ChatBoard chatState={chatState} setChatState={setChatState} />
+      <PresetCard chatState={chatState} setChatState={setChatState} />
     </div>
+    </>
   )
 }

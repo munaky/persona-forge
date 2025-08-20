@@ -1,10 +1,16 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { Send } from "lucide-react";
-import { ChatRequestPayload, Message, Preset } from "@/types/chat";
+import { RotateCcw, Send, Trash2Icon } from "lucide-react";
+import { ChatRequestPayload, ChatState, Message, Preset } from "@/types/chat";
 import { chatApi } from "@/lib/api/client/chat";
 import { Response } from "@/components/ai-elements/response";
+import { set } from "zod/v4";
+
+interface ChatBoardProps {
+  chatState: ChatState | null;
+  setChatState: (state: ChatState | null) => void;
+}
 
 const findText = (parts: Array<{ text: string }>) => {
   return parts.map(part => part.text || '').join("");
@@ -22,7 +28,11 @@ const makeMessage = (text: string): Message => {
   };
 }
 
-const makePayload = (userMessage: string, messages: Message[], preset: Preset): ChatRequestPayload => {
+const makePayload = (userMessage: string, messages: Message[], preset: Preset | null): ChatRequestPayload => {
+  if (!preset) {
+    throw new Error("Preset is required to make a chat request payload");
+  }
+
   return {
     preset,
     userInput: makeUserInput(userMessage),
@@ -30,31 +40,33 @@ const makePayload = (userMessage: string, messages: Message[], preset: Preset): 
   };
 }
 
-export default function ChatBoard() {
-  const [preset, setPreset] = useState<Preset>({
-    name: "Default",
-    description: "Default preset for chat",
-    thinking: false,
-    remember: true,
-    config: {
-      systemInstruction: "You are a helpful assistant.",
-    },
-  });
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState("");
+export default function ChatBoard({ chatState, setChatState }: ChatBoardProps) {
+  const preset: Preset | null = chatState?.preset || null;
+  const [messages, setMessages] = useState<Message[]>(chatState?.history || []);
+
+  const [input, setInput] = useState<string>("");
   const chatEndRef = useRef<HTMLDivElement | null>(null);
 
-  // Auto scroll to bottom
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  const setChatStateHistory = () => {
+    if (!chatState) return
+    setChatState({ ...chatState, history: messages });
+  }
+
+  const handleClearChat = () => {
+    setMessages([]);
+    setInput("");
+    if (!chatState) return;
+    setChatState({ ...chatState, history: [] });
+
+  }
 
   const handleSend = async () => {
     try {
       if (!input.trim()) return;
 
       // Add user message to chat
-      setMessages((prev) => [...prev, makeMessage(input)]);
+      setMessages(prev => [...prev, makeMessage(input)]);
+      setChatStateHistory();
       setInput("");
 
       const payload: ChatRequestPayload = makePayload(input, messages, preset);
@@ -63,7 +75,8 @@ export default function ChatBoard() {
       console.log("Response from chat API:", res);
 
       // Add AI response to chat
-      setMessages((prev) => [...prev, res.data]);
+      setMessages(prev => [...prev, res.data]);
+      setChatStateHistory();
 
     } catch (error) {
       console.error("Error sending message:", error);
@@ -77,6 +90,11 @@ export default function ChatBoard() {
     }
   };
 
+  // Auto scroll to bottom
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
   return (
     <div className="grow flex flex-col h-[100vh] mx-auto border border-gray-800 shadow-lg bg-gray-900">
       {/* Chat Messages */}
@@ -89,11 +107,11 @@ export default function ChatBoard() {
           >
             <div
               className={`rounded-2xl px-4 py-2 max-w-[80%] ${msg.role === "user"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-800 text-gray-100"
+                ? "bg-blue-600 text-white"
+                : "bg-gray-800 text-gray-100"
                 }`}
             >
-              <Response>{findText(msg.parts)}</Response>
+              <Response className="max-w-[20wh]">{findText(msg.parts)}</Response>
             </div>
           </div>
         ))}
@@ -115,6 +133,12 @@ export default function ChatBoard() {
           className="p-3 bg-blue-600 hover:bg-blue-700 rounded-xl text-white transition"
         >
           <Send size={20} />
+        </button>
+        <button
+          onClick={handleClearChat}
+          className="p-3 bg-red-600 hover:bg-red-700 rounded-xl text-white transition"
+        >
+          <Trash2Icon size={20} />
         </button>
       </div>
     </div>
