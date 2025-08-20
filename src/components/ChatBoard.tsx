@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { Send } from "lucide-react";
+import { RotateCcw, Send, Trash2Icon } from "lucide-react";
 import { ChatRequestPayload, ChatState, Message, Preset } from "@/types/chat";
 import { chatApi } from "@/lib/api/client/chat";
 import { Response } from "@/components/ai-elements/response";
@@ -43,20 +43,22 @@ const makePayload = (userMessage: string, messages: Message[], preset: Preset | 
 export default function ChatBoard({ chatState, setChatState }: ChatBoardProps) {
   const preset: Preset | null = chatState?.preset || null;
   const [messages, setMessages] = useState<Message[]>(chatState?.history || []);
-  
+
   const [input, setInput] = useState<string>("");
   const chatEndRef = useRef<HTMLDivElement | null>(null);
 
   const setChatStateHistory = () => {
-    if (chatState) {
-      setChatState({ ...chatState, history: messages });
-    }
+    if (!chatState) return
+    setChatState({ ...chatState, history: messages });
   }
 
-  // Auto scroll to bottom
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  const handleClearChat = () => {
+    setMessages([]);
+    setInput("");
+    if (!chatState) return;
+    setChatState({ ...chatState, history: [] });
+
+  }
 
   const handleSend = async () => {
     try {
@@ -88,6 +90,11 @@ export default function ChatBoard({ chatState, setChatState }: ChatBoardProps) {
     }
   };
 
+  // Auto scroll to bottom
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
   return (
     <div className="grow flex flex-col h-[100vh] mx-auto border border-gray-800 shadow-lg bg-gray-900">
       {/* Chat Messages */}
@@ -100,8 +107,8 @@ export default function ChatBoard({ chatState, setChatState }: ChatBoardProps) {
           >
             <div
               className={`rounded-2xl px-4 py-2 max-w-[80%] ${msg.role === "user"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-800 text-gray-100"
+                ? "bg-blue-600 text-white"
+                : "bg-gray-800 text-gray-100"
                 }`}
             >
               <Response className="max-w-[20wh]">{findText(msg.parts)}</Response>
@@ -126,6 +133,12 @@ export default function ChatBoard({ chatState, setChatState }: ChatBoardProps) {
           className="p-3 bg-blue-600 hover:bg-blue-700 rounded-xl text-white transition"
         >
           <Send size={20} />
+        </button>
+        <button
+          onClick={handleClearChat}
+          className="p-3 bg-red-600 hover:bg-red-700 rounded-xl text-white transition"
+        >
+          <Trash2Icon size={20} />
         </button>
       </div>
     </div>
