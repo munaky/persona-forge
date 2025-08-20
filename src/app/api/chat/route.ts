@@ -22,6 +22,8 @@ export async function POST(req: Request) {
         history: body.preset.remember ? body.history : []
     });
 
+    console.log(body)
+
     const res = await chat.sendMessage({
         message: body.userInput,
     })

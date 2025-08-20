@@ -1,8 +1,6 @@
 export interface ChatRequestPayload {
     preset: Preset;
-    userInput: Array<{
-        text: string;
-    }>;
+    userInput: Part[];
     history: Message[];
 }
 
@@ -23,10 +21,17 @@ export interface Preset {
     };
 }
 
+export type Part = {
+    text: string;
+} | {
+    inlineData: {
+        mimeType: string;
+        data: string;
+    }
+}
+
 export interface Message {
     id: string;
     role: "user" | "model";
-    parts: Array<{
-        text: string;
-    }>
+    parts: Part[]
 };
