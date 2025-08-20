@@ -32,6 +32,16 @@ export default function EditPresetDialog({
   const [remember, setRemember] = useState<boolean>(chatState?.preset.remember || false);
   const [thinking, setThinking] = useState<boolean>(chatState?.preset.thinking || false);
 
+  useEffect(() => {
+    if (chatState?.preset) {
+      setName(chatState.preset.name);
+      setDescription(chatState.preset.description);
+      setSystemInstruction(chatState.preset.config.systemInstruction);
+      setRemember(chatState.preset.remember);
+      setThinking(chatState.preset.thinking);
+    }
+  }, [chatState]);
+
   const handleSave = () => {
     if (chatState) {
       const newPreset = {
@@ -52,7 +62,7 @@ export default function EditPresetDialog({
       <DialogTrigger asChild>
         <Button>Edit Preset</Button>
       </DialogTrigger>
-      <DialogContent className="max-w-md" aria-describedby={undefined}>
+      <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto" aria-describedby={undefined}>
         <DialogHeader>
           <DialogTitle>Preset Editor</DialogTitle>
         </DialogHeader>
@@ -78,6 +88,7 @@ export default function EditPresetDialog({
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Short description of this preset"
               rows={3}
+              className="max-h-[200px] overflow-y-auto resize-none"
             />
           </div>
 
@@ -90,6 +101,7 @@ export default function EditPresetDialog({
               onChange={(e) => setSystemInstruction(e.target.value)}
               placeholder="Special instructions for AI behavior"
               rows={4}
+              className="max-h-[200px] overflow-y-auto resize-none"
             />
           </div>
 

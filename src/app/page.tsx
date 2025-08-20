@@ -22,7 +22,7 @@ export default function Main() {
 
   return (
     <>
-    <div className="flex">
+    <div className="flex ">
       <ChatBoard chatState={chatState} setChatState={setChatState} />
       <PresetCard chatState={chatState} setChatState={setChatState} />
     </div>
