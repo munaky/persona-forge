@@ -104,7 +104,7 @@ export default function ChatBoard({ chatState, setChatState }: ChatBoardProps) {
                   : "bg-gray-800 text-gray-100"
                 }`}
             >
-              <Response>{findText(msg.parts)}</Response>
+              <Response className="max-w-[20wh]">{findText(msg.parts)}</Response>
             </div>
           </div>
         ))}
