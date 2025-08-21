@@ -16,6 +16,7 @@ export interface Preset {
     description: string;
     thinking: boolean;
     remember: boolean;
+    search?: boolean;
     config: {
         systemInstruction: string;
     };

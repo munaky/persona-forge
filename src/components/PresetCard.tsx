@@ -20,6 +20,7 @@ const defaultPresets: Preset = {
     config: { systemInstruction: "" },
     remember: false,
     thinking: false,
+    search: false,
 };
 
 export default function PresetCard({ chatState, setChatState }: PresetCardProps) {
@@ -57,6 +58,11 @@ export default function PresetCard({ chatState, setChatState }: PresetCardProps)
                     <label className="flex items-center gap-2 cursor-pointer">
                         <Checkbox checked={preset.thinking} disabled />
                         <span className="text-sm">Thinking</span>
+                    </label>
+
+                    <label className="flex items-center gap-2 cursor-pointer">
+                        <Checkbox checked={preset.search} disabled />
+                        <span className="text-sm">Search</span>
                     </label>
                 </div>
 

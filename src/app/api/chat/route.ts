@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { GoogleGenAI, HarmBlockMethod, HarmBlockThreshold, HarmCategory, HarmProbability } from "@google/genai";
+import { GoogleGenAI } from "@google/genai";
 import { ChatRequestPayload } from "@/types/chat";
 import { resSuccess } from "@/lib/response-format";
 
@@ -9,16 +9,20 @@ const ai = new GoogleGenAI({
 
 export async function POST(req: Request) {
     const body: ChatRequestPayload = await req.json()
-    const id: string = crypto.randomUUID()
 
     const chat = ai.chats.create({
         model: "gemini-2.5-flash",
         config: {
-            ...body.preset.config,
+            systemInstruction: body.preset.config.systemInstruction,
             thinkingConfig: {
                 thinkingBudget: body.preset.thinking ? -1 : 0,
             },
             responseModalities: ['TEXT'],
+            tools: [
+                body.preset.search ? {
+                    googleSearch: {}
+                } : {}
+            ]
         },
         history: body.preset.remember ? body.history : []
     });
