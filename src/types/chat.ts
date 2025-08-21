@@ -17,6 +17,9 @@ export interface Preset {
     thinking: boolean;
     remember: boolean;
     search?: boolean;
+    functionCalling?: {
+        functionDeclarations: any[]
+    };
     config: {
         systemInstruction: string;
     };

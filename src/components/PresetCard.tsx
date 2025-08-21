@@ -64,7 +64,20 @@ export default function PresetCard({ chatState, setChatState }: PresetCardProps)
                         <Checkbox checked={preset.search} disabled />
                         <span className="text-sm">Search</span>
                     </label>
+
+                    <label className="flex items-center gap-2 cursor-pointer">
+                        <Checkbox checked={preset.functionCalling ? true : false} disabled />
+                        <span className="text-sm">Function Calling</span>
+                    </label>
                 </div>
+                {preset.functionCalling && (
+                    <div>
+                    <p className="text-sm text-gray-400 mb-1">Function Declarations</p>
+                    <div className="max-h-[50vh] overflow-auto bg-gray-800 p-3 rounded-lg text-sm text-gray-300 whitespace-pre-wrap">
+                        {JSON.stringify(preset.functionCalling.functionDeclarations)}
+                    </div>
+                </div>
+                )}
 
                 {/* Description */}
                 <div>
