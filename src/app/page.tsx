@@ -43,10 +43,14 @@ export default function Main() {
 
   return (
     <>
-    <div className="flex overflow-hidden h-screen">
+    <div className="grid grid-cols-12 overflow-hidden h-screen max-w-screen">
       <FullScreenLoader loading={loading} />
-      <ChatBoard chatState={chatState} setChatState={setChatState} />
-      <PresetCard chatState={chatState} setChatState={setChatState} />
+      <div className="col-span-9">
+        <ChatBoard chatState={chatState} setChatState={setChatState} />
+      </div>
+      <div className="col-span-3">
+        <PresetCard chatState={chatState} setChatState={setChatState} />
+      </div>
     </div>
     </>
   )

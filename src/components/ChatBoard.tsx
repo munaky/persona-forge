@@ -1,12 +1,12 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { FileUp, RotateCcw, Send, Trash2Icon } from "lucide-react";
+import { FileUp, Send, Trash2Icon } from "lucide-react";
 import { ChatRequestPayload, ChatState, Message, Part, Preset } from "@/types/chat";
-import { chatApi } from "@/lib/api/client/chat";
 import { Response } from "@/components/ai-elements/response";
 import ListFileCard from "./ListFileCard";
 import { fileToBase64, getFileId } from "@/lib/utils";
+import { useChatStream } from "@/app/hooks/useChatStream";
 
 interface ChatBoardProps {
   chatState: ChatState | null;
@@ -72,13 +72,14 @@ export default function ChatBoard({ chatState, setChatState }: ChatBoardProps) {
   const [files, setFiles] = useState<File[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [input, setInput] = useState<string>("");
+  const { response, done, sendChatMessage } = useChatStream();
   const chatEndRef = useRef<HTMLDivElement | null>(null);
 
   const handleInputFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = e.target.files?.[0]
     if (!selectedFiles) return;
     if (files.find(f => getFileId(f) == getFileId(selectedFiles))) return;
-    console.log("Selected files:", selectedFiles);
+    if (!(selectedFiles.type in allowedMimeType)) return;
 
     setFiles(prev => [...prev, selectedFiles]);
 
@@ -106,7 +107,11 @@ export default function ChatBoard({ chatState, setChatState }: ChatBoardProps) {
       // Store use chat to ChatState
       setChatState((prev: ChatState) => ({
         ...prev,
-        history: [...prev.history, message]
+        history: [...prev.history, message, {
+          id: crypto.randomUUID(),
+          role: 'model',
+          parts: [{ text: '' }]
+        }]
       }));
 
       setInput("");
@@ -114,18 +119,12 @@ export default function ChatBoard({ chatState, setChatState }: ChatBoardProps) {
 
       const payload: ChatRequestPayload = makePayload([...textPart, ...fileParts], chatState.history, preset);
 
-      const res = await chatApi.sendMessage(payload);
-      console.log("Response from chat API:", res);
-
-      // Add AI response to chat
-      setChatState((prev: ChatState) => ({
-        ...prev,
-        history: [...prev.history, res.data]
-      }));
+      const res = await sendChatMessage(payload);
 
       setLoading(false);
     } catch (error) {
       console.error("Error sending message:", error);
+      setLoading(false);
     }
   };
 
@@ -136,13 +135,35 @@ export default function ChatBoard({ chatState, setChatState }: ChatBoardProps) {
     }
   };
 
+  // Handling Stream Response
+  useEffect(() => {
+    if (!done) {
+      const historyLength = chatState?.history.length || 0;
+
+      setChatState((prev: ChatState) => ({
+        ...prev,
+        history: prev.history.map((msg, index) => {
+          if (index == historyLength - 1) {
+            return {
+              ...msg,
+              parts: [{ text: findText(msg.parts) + response }]
+            }
+          }
+
+          return msg
+        })
+      }));
+
+    }
+  }, [response])
+
   // Auto scroll to bottom
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chatState?.history]);
 
   return (
-    <div className="grow flex flex-col h-[100vh] mx-auto border border-gray-800 shadow-lg bg-gray-900">
+    <div className="flex flex-col h-[100vh] mx-auto border border-gray-800 shadow-lg bg-gray-900">
       {/* Chat Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4 hide-scrollbar">
         {chatState?.history.map((msg) => (
@@ -152,12 +173,13 @@ export default function ChatBoard({ chatState, setChatState }: ChatBoardProps) {
               }`}
           >
             <div
-              className={`relative rounded-2xl px-4 py-2 max-w-[80%] ${msg.role === "user"
+              className={`rounded-2xl px-4 py-2 max-w-[80%] ${msg.role === "user"
                 ? "bg-blue-600 text-white"
                 : "bg-gray-800 text-gray-100"
                 }`}
             >
-              <Response className="max-w-[20wh]">{findText(msg.parts)}</Response>
+
+              <Response>{findText(msg.parts)}</Response>
               {msg.parts.length > 1 && (
                 <p
                   className="absolute right-3 -bottom-4 font-semibold text-xs text-gray-400"
