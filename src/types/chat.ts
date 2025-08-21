@@ -18,7 +18,8 @@ export interface Preset {
     remember: boolean;
     search?: boolean;
     functionCalling?: {
-        functionDeclarations: any[]
+        functionDeclarations: any[];
+        webhookUrl: string;
     };
     config: {
         systemInstruction: string;
