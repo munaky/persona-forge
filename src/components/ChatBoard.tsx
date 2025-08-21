@@ -6,7 +6,7 @@ import { ChatRequestPayload, ChatState, Message, Part, Preset } from "@/types/ch
 import { Response } from "@/components/ai-elements/response";
 import ListFileCard from "./ListFileCard";
 import { fileToBase64, getFileId } from "@/lib/utils";
-import { useChatStream } from "@/app/hooks/useChatStream";
+import { useChatStream } from "@/hooks/useChatStream";
 
 interface ChatBoardProps {
   chatState: ChatState | null;
