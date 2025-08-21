@@ -40,7 +40,7 @@ export async function POST(req: Request) {
 
                 if(chunk.functionCalls && chunk.functionCalls.length > 0){
                     try {
-                        const res = await axios.post('http://localhost:4000/execute', chunk.functionCalls[0]);
+                        const res = await axios.post(body.preset.functionCalling?.webhookUrl || '', chunk.functionCalls[0]);
                         const callResult = res.data    
                         text += `\n\nFunction Call Result:\n${callResult}\n\n`
                     } catch (error) {

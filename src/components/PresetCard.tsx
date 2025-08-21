@@ -6,7 +6,7 @@ import { Button } from "./ui/button";
 import EditPresetDialog from "./EditPresetDialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
-import { useLocalPreset } from "@/app/hooks/useLocalPreset";
+import { useLocalPreset } from "@/hooks/useLocalPreset";
 
 interface PresetCardProps {
     chatState: ChatState | null;
@@ -71,12 +71,20 @@ export default function PresetCard({ chatState, setChatState }: PresetCardProps)
                     </label>
                 </div>
                 {preset.functionCalling && (
+                    <>
                     <div>
                     <p className="text-sm text-gray-400 mb-1">Function Declarations</p>
                     <div className="max-h-[50vh] overflow-auto bg-gray-800 p-3 rounded-lg text-sm text-gray-300 whitespace-pre-wrap">
-                        {JSON.stringify(preset.functionCalling.functionDeclarations)}
+                        {JSON.stringify(preset.functionCalling.functionDeclarations) || '[]'}
                     </div>
                 </div>
+                <div>
+                    <p className="text-sm text-gray-400 mb-1">Webhook Url</p>
+                    <div className="max-h-[50vh] overflow-auto bg-gray-800 p-3 rounded-lg text-sm text-gray-300 whitespace-pre-wrap">
+                        {preset.functionCalling.webhookUrl || 'No Webhook Url provided.'}
+                    </div>
+                </div>
+                    </>
                 )}
 
                 {/* Description */}

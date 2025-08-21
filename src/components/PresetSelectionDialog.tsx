@@ -9,7 +9,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ChatState, Preset } from "@/types/chat";
 import { useEffect, useState, useMemo, use } from "react";
 import { presetsApi } from "@/lib/api/client/preset";
-import { useLocalPreset } from "@/app/hooks/useLocalPreset";
+import { useLocalPreset } from "@/hooks/useLocalPreset";
 import { Trash2Icon } from "lucide-react";
 
 const customPreset: Preset = {

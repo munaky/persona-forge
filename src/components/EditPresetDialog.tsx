@@ -36,7 +36,8 @@ export default function EditPresetDialog({
     functionCalling
       ? JSON.stringify(chatState?.preset.functionCalling?.functionDeclarations)
       : ''
-  )
+  );
+  const [webhookUrl, setWebhookUrl] = useState<string>(chatState?.preset.functionCalling?.webhookUrl || '')
 
   useEffect(() => {
     if (chatState?.preset) {
@@ -47,8 +48,9 @@ export default function EditPresetDialog({
       setThinking(chatState.preset.thinking);
       setSearch(chatState.preset.search || false);
       setFunctionCalling(chatState?.preset.functionCalling ? true : false);
-      if(functionCalling) {
-        setFunctionDeclarations(JSON.stringify(chatState?.preset.functionCalling?.functionDeclarations))
+      if (functionCalling) {
+        setFunctionDeclarations(JSON.stringify(chatState?.preset.functionCalling?.functionDeclarations));
+        setWebhookUrl(chatState.preset.functionCalling?.webhookUrl || '')
       }
     }
   }, [chatState]);
@@ -73,7 +75,8 @@ export default function EditPresetDialog({
         search,
         ...(functionCalling ? {
           functionCalling: {
-            functionDeclarations: JSON.parse(parsedFnDeclarations)
+            functionDeclarations: JSON.parse(parsedFnDeclarations),
+            webhookUrl
           }
         } : {})
       };
@@ -169,17 +172,29 @@ export default function EditPresetDialog({
 
           {/* Function Declarations */}
           {functionCalling && (
-            <div className="space-y-2">
-            <Label htmlFor="functionDeclarations">Function Declarations</Label>
-            <Textarea
-              id="functionDeclarations"
-              value={functionDeclarations}
-              onChange={(e) => setFunctionDeclarations(e.target.value)}
-              placeholder="Function Declarations for Function Calling"
-              rows={4}
-              className="max-h-[200px] overflow-y-auto resize-none"
-            />
-          </div>
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="functionDeclarations">Function Declarations</Label>
+                <Textarea
+                  id="functionDeclarations"
+                  value={functionDeclarations}
+                  onChange={(e) => setFunctionDeclarations(e.target.value)}
+                  placeholder="Function Declarations for Function Calling"
+                  rows={4}
+                  className="max-h-[200px] overflow-y-auto resize-none"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="webhookUrl">Webhook Url</Label>
+                <Input
+                  id="webhookUrl"
+                  value={webhookUrl}
+                  onChange={(e) => setWebhookUrl(e.target.value)}
+                  placeholder="Webhook Url to handle function calling"
+                  className="max-h-[200px] overflow-y-auto resize-none"
+                />
+              </div>
+            </>
           )}
 
           {/* Save Button */}
