@@ -27,7 +27,7 @@ export default function PresetCard({ chatState, setChatState }: PresetCardProps)
     const { addPreset } = useLocalPreset();
 
     return (
-        <Card className="w-[300px] min-h-[300px] h-screen bg-gray-900 text-gray-100 flex flex-col rounded-none shadow-lg border-0 border-l border-gray-700">
+        <Card className="w-full h-screen bg-gray-900 text-gray-100 flex flex-col rounded-none shadow-lg border-0 border-l border-gray-700">
             <CardHeader className="border-b border-gray-700">
                 <CardTitle className="text-lg font-semibold flex flex-col items-center gap-6">
                     <PresetSelectionDialog 

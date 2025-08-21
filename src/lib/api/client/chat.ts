@@ -10,4 +10,24 @@ export const chatApi = {
     console.log('chatApi.sendMessage response', res.data);
     return res.data; 
   },
+  
+  sendMessageStream: async (payload: ChatRequestPayload, onChunk: (chunk: string) => void) => {
+    const res = await fetch("/api/chat", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.body) return;
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      const chunk = decoder.decode(value, { stream: true });
+      onChunk(chunk);
+    }
+  },
 };
