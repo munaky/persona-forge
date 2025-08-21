@@ -1,8 +1,6 @@
 export interface ChatRequestPayload {
     preset: Preset;
-    userInput: Array<{
-        text: string;
-    }>;
+    userInput: Part[];
     history: Message[];
 }
 
@@ -18,15 +16,26 @@ export interface Preset {
     description: string;
     thinking: boolean;
     remember: boolean;
+    search?: boolean;
+    functionCalling?: {
+        functionDeclarations: any[]
+    };
     config: {
         systemInstruction: string;
     };
 }
 
+export type Part = {
+    text: string;
+} | {
+    inlineData: {
+        mimeType: string;
+        data: string;
+    }
+}
+
 export interface Message {
     id: string;
     role: "user" | "model";
-    parts: Array<{
-        text: string;
-    }>
+    parts: Part[]
 };

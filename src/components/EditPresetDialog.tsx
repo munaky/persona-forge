@@ -15,7 +15,6 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ChatState } from "@/types/chat";
 import { useEffect, useState } from "react";
-import { presetsApi } from "@/lib/api/client/preset";
 
 interface EditPresetDialogProps {
   chatState: ChatState | null;
@@ -31,6 +30,13 @@ export default function EditPresetDialog({
   const [systemInstruction, setSystemInstruction] = useState<string>(chatState?.preset.config.systemInstruction || "");
   const [remember, setRemember] = useState<boolean>(chatState?.preset.remember || false);
   const [thinking, setThinking] = useState<boolean>(chatState?.preset.thinking || false);
+  const [search, setSearch] = useState<boolean>(chatState?.preset.search || false);
+  const [functionCalling, setFunctionCalling] = useState<boolean>(chatState?.preset.functionCalling ? true : false)
+  const [functionDeclarations, setFunctionDeclarations] = useState<string>(
+    functionCalling
+      ? JSON.stringify(chatState?.preset.functionCalling?.functionDeclarations)
+      : ''
+  )
 
   useEffect(() => {
     if (chatState?.preset) {
@@ -39,11 +45,24 @@ export default function EditPresetDialog({
       setSystemInstruction(chatState.preset.config.systemInstruction);
       setRemember(chatState.preset.remember);
       setThinking(chatState.preset.thinking);
+      setSearch(chatState.preset.search || false);
+      setFunctionCalling(chatState?.preset.functionCalling ? true : false);
+      if(functionCalling) {
+        setFunctionDeclarations(JSON.stringify(chatState?.preset.functionCalling?.functionDeclarations))
+      }
     }
   }, [chatState]);
 
   const handleSave = () => {
     if (chatState) {
+      let parsedFnDeclarations: any;
+      try {
+        parsedFnDeclarations = functionDeclarations;
+      } catch (error) {
+        alert('unable to parse function declarations');
+        return;
+      }
+
       const newPreset = {
         ...chatState.preset,
         name,
@@ -51,6 +70,12 @@ export default function EditPresetDialog({
         config: { ...chatState.preset.config, systemInstruction },
         remember,
         thinking,
+        search,
+        ...(functionCalling ? {
+          functionCalling: {
+            functionDeclarations: JSON.parse(parsedFnDeclarations)
+          }
+        } : {})
       };
 
       setChatState({ ...chatState, preset: newPreset });
@@ -123,6 +148,39 @@ export default function EditPresetDialog({
             />
             <Label htmlFor="thinking">Thinking</Label>
           </div>
+
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="search"
+              checked={search}
+              onCheckedChange={(val) => setSearch(!!val)}
+            />
+            <Label htmlFor="search">Search</Label>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="functionCalling"
+              checked={functionCalling ? true : false}
+              onCheckedChange={(val) => setFunctionCalling(!!val)}
+            />
+            <Label htmlFor="functionCalling">Function Calling</Label>
+          </div>
+
+          {/* Function Declarations */}
+          {functionCalling && (
+            <div className="space-y-2">
+            <Label htmlFor="functionDeclarations">Function Declarations</Label>
+            <Textarea
+              id="functionDeclarations"
+              value={functionDeclarations}
+              onChange={(e) => setFunctionDeclarations(e.target.value)}
+              placeholder="Function Declarations for Function Calling"
+              rows={4}
+              className="max-h-[200px] overflow-y-auto resize-none"
+            />
+          </div>
+          )}
 
           {/* Save Button */}
           <div className="flex justify-end space-x-2 pt-2">

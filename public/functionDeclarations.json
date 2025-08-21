@@ -1,0 +1,18 @@
+[
+    {
+        "name": "open_app",
+        "description": "open windows 11 app via cmd using childprocess in nodejs",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "script": {
+                    "type": "string",
+                    "description": "script that will be executed via childprocess in nodejs to open the app"
+                }
+            },
+            "required": [
+                "script"
+            ]
+        }
+    }
+]

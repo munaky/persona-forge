@@ -1,59 +1,94 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { RotateCcw, Send, Trash2Icon } from "lucide-react";
-import { ChatRequestPayload, ChatState, Message, Preset } from "@/types/chat";
-import { chatApi } from "@/lib/api/client/chat";
+import { FileUp, Send, Trash2Icon } from "lucide-react";
+import { ChatRequestPayload, ChatState, Message, Part, Preset } from "@/types/chat";
 import { Response } from "@/components/ai-elements/response";
-import { set } from "zod/v4";
+import ListFileCard from "./ListFileCard";
+import { fileToBase64, getFileId } from "@/lib/utils";
+import { useChatStream } from "@/app/hooks/useChatStream";
 
 interface ChatBoardProps {
   chatState: ChatState | null;
-  setChatState: (state: ChatState | null) => void;
+  setChatState: (state: any) => void;
 }
 
-const findText = (parts: Array<{ text: string }>) => {
-  return parts.map(part => part.text || '').join("");
+const findText = (parts: Part[]) => {
+  return parts.map(part => (part as any).text || '').join("");
 }
 
-const makeUserInput = (text: string): any => {
-  return [{ text }];
-}
-
-const makeMessage = (text: string): Message => {
+const makeMessage = (parts: Part[]): Message => {
   return {
     id: crypto.randomUUID(),
     role: 'user',
-    parts: [{ text }],
+    parts: [...parts],
   };
 }
 
-const makePayload = (userMessage: string, messages: Message[], preset: Preset | null): ChatRequestPayload => {
+const makePayload = (userInput: Part[], messages: Message[], preset: Preset | null): ChatRequestPayload => {
   if (!preset) {
     throw new Error("Preset is required to make a chat request payload");
   }
 
   return {
     preset,
-    userInput: makeUserInput(userMessage),
+    userInput,
     history: messages,
   };
 }
 
-export default function ChatBoard({ chatState, setChatState }: ChatBoardProps) {
-  const preset: Preset | null = chatState?.preset || null;
-  const [messages, setMessages] = useState<Message[]>(chatState?.history || []);
+const textToParts = (text: string) => {
+  return [
+    { text }
+  ]
+}
 
-  const [input, setInput] = useState<string>("");
-  const chatEndRef = useRef<HTMLDivElement | null>(null);
+const filesToParts = async (files: File[]) => {
+  let parts: Part[] = [];
 
-  const setChatStateHistory = () => {
-    if (!chatState) return
-    setChatState({ ...chatState, history: messages });
+  for (const file of files) {
+    const base64 = await fileToBase64(file)
+
+    if (!base64 || typeof base64 != 'string') continue
+    parts.push({
+      inlineData: {
+        mimeType: file.type,
+        data: base64
+      }
+    })
   }
 
+  return parts
+}
+
+const countFilesInParts = (parts: Part[]) => {
+  return parts.filter(part => !(part as any).text).length;
+}
+
+export default function ChatBoard({ chatState, setChatState }: ChatBoardProps) {
+  const inputFileRef = useRef<HTMLInputElement>(null);
+  const preset: Preset | null = chatState?.preset || null;
+  const allowedMimeType: string[] = ['application/pdf', 'image/png', 'image/jpeg'];
+  const [files, setFiles] = useState<File[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [input, setInput] = useState<string>("");
+  const { response, done, sendChatMessage } = useChatStream();
+  const chatEndRef = useRef<HTMLDivElement | null>(null);
+
+  const handleInputFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFiles = e.target.files?.[0]
+    if (!selectedFiles) return;
+    if (files.find(f => getFileId(f) == getFileId(selectedFiles))) return;
+    // if (!(selectedFiles.type in allowedMimeType)) return;
+
+    setFiles(prev => [...prev, selectedFiles]);
+
+    if (inputFileRef.current) {
+      inputFileRef.current.value = '';
+    }
+  };
+
   const handleClearChat = () => {
-    setMessages([]);
     setInput("");
     if (!chatState) return;
     setChatState({ ...chatState, history: [] });
@@ -62,24 +97,34 @@ export default function ChatBoard({ chatState, setChatState }: ChatBoardProps) {
 
   const handleSend = async () => {
     try {
-      if (!input.trim()) return;
+      if (!input.trim() || !chatState) return;
+      setLoading(true);
 
-      // Add user message to chat
-      setMessages(prev => [...prev, makeMessage(input)]);
-      setChatStateHistory();
+      const textPart = textToParts(input);
+      const fileParts = await filesToParts(files);
+      const message = makeMessage([...textPart, ...fileParts])
+
+      // Store use chat to ChatState
+      setChatState((prev: ChatState) => ({
+        ...prev,
+        history: [...prev.history, message, {
+          id: crypto.randomUUID(),
+          role: 'model',
+          parts: [{ text: '' }]
+        }]
+      }));
+
       setInput("");
+      setFiles([]);
 
-      const payload: ChatRequestPayload = makePayload(input, messages, preset);
+      const payload: ChatRequestPayload = makePayload([...textPart, ...fileParts], chatState.history, preset);
 
-      const res = await chatApi.sendMessage(payload);
-      console.log("Response from chat API:", res);
+      const res = await sendChatMessage(payload);
 
-      // Add AI response to chat
-      setMessages(prev => [...prev, res.data]);
-      setChatStateHistory();
-
+      setLoading(false);
     } catch (error) {
       console.error("Error sending message:", error);
+      setLoading(false);
     }
   };
 
@@ -90,28 +135,57 @@ export default function ChatBoard({ chatState, setChatState }: ChatBoardProps) {
     }
   };
 
+  // Handling Stream Response
+  useEffect(() => {
+    if (!done) {
+      const historyLength = chatState?.history.length || 0;
+
+      setChatState((prev: ChatState) => ({
+        ...prev,
+        history: prev.history.map((msg, index) => {
+          if (index == historyLength - 1) {
+            return {
+              ...msg,
+              parts: [{ text: findText(msg.parts) + response }]
+            }
+          }
+
+          return msg
+        })
+      }));
+
+    }
+  }, [response])
+
   // Auto scroll to bottom
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [chatState?.history]);
 
   return (
-    <div className="grow flex flex-col h-[100vh] mx-auto border border-gray-800 shadow-lg bg-gray-900">
+    <div className="flex flex-col h-[100vh] mx-auto border border-gray-800 shadow-lg bg-gray-900">
       {/* Chat Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4 hide-scrollbar">
-        {messages.map((msg) => (
+        {chatState?.history.map((msg) => (
           <div
             key={msg.id}
             className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"
               }`}
           >
             <div
-              className={`rounded-2xl px-4 py-2 max-w-[80%] ${msg.role === "user"
+              className={`relative rounded-2xl px-4 py-2 max-w-[80%] ${msg.role === "user"
                 ? "bg-blue-600 text-white"
                 : "bg-gray-800 text-gray-100"
                 }`}
             >
-              <Response className="max-w-[20wh]">{findText(msg.parts)}</Response>
+
+              <Response>{findText(msg.parts)}</Response>
+              {msg.parts.length > 1 && (
+                <p
+                  className="absolute right-3 -bottom-4 font-semibold text-xs text-gray-400"
+                >
+                  with {countFilesInParts(msg.parts)} files.
+                </p>)}
             </div>
           </div>
         ))}
@@ -120,22 +194,46 @@ export default function ChatBoard({ chatState, setChatState }: ChatBoardProps) {
 
       {/* Input */}
       <div className="border-t border-gray-700 p-3 flex items-center gap-2">
-        <textarea
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Type your message..."
-          className="flex-1 resize-none rounded-xl p-3 bg-gray-800 text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          rows={1}
-        />
+        <div className="relative w-full">
+          {files.length > 0 && (
+            <div className="absolute right-0   bottom-full origin-bottom">
+              <ListFileCard files={files} setFiles={setFiles} />
+            </div>
+          )}
+          <textarea
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            disabled={loading}
+            placeholder="Type your message..."
+            className="flex-1 w-full resize-none rounded-xl p-3 bg-gray-800 text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            rows={1}
+          />
+        </div>
         <button
           onClick={handleSend}
+          disabled={loading}
           className="p-3 bg-blue-600 hover:bg-blue-700 rounded-xl text-white transition"
         >
           <Send size={20} />
         </button>
+        <label
+          htmlFor="fileInput"
+          className="p-3 bg-green-600 hover:bg-green-700 rounded-xl text-white transition"
+        >
+          <FileUp size={20} />
+          <input
+            ref={inputFileRef}
+            onChange={handleInputFile}
+            disabled={loading}
+            type="file"
+            id="fileInput"
+            className="hidden"
+          />
+        </label>
         <button
           onClick={handleClearChat}
+          disabled={loading}
           className="p-3 bg-red-600 hover:bg-red-700 rounded-xl text-white transition"
         >
           <Trash2Icon size={20} />

@@ -20,6 +20,7 @@ const defaultPresets: Preset = {
     config: { systemInstruction: "" },
     remember: false,
     thinking: false,
+    search: false,
 };
 
 export default function PresetCard({ chatState, setChatState }: PresetCardProps) {
@@ -27,7 +28,7 @@ export default function PresetCard({ chatState, setChatState }: PresetCardProps)
     const { addPreset } = useLocalPreset();
 
     return (
-        <Card className="w-[320px] h-screen bg-gray-900 text-gray-100 flex flex-col rounded-none shadow-lg">
+        <Card className="w-full h-screen bg-gray-900 text-gray-100 flex flex-col rounded-none shadow-lg border-0 border-l border-gray-700">
             <CardHeader className="border-b border-gray-700">
                 <CardTitle className="text-lg font-semibold flex flex-col items-center gap-6">
                     <PresetSelectionDialog 
@@ -58,7 +59,25 @@ export default function PresetCard({ chatState, setChatState }: PresetCardProps)
                         <Checkbox checked={preset.thinking} disabled />
                         <span className="text-sm">Thinking</span>
                     </label>
+
+                    <label className="flex items-center gap-2 cursor-pointer">
+                        <Checkbox checked={preset.search} disabled />
+                        <span className="text-sm">Search</span>
+                    </label>
+
+                    <label className="flex items-center gap-2 cursor-pointer">
+                        <Checkbox checked={preset.functionCalling ? true : false} disabled />
+                        <span className="text-sm">Function Calling</span>
+                    </label>
                 </div>
+                {preset.functionCalling && (
+                    <div>
+                    <p className="text-sm text-gray-400 mb-1">Function Declarations</p>
+                    <div className="max-h-[50vh] overflow-auto bg-gray-800 p-3 rounded-lg text-sm text-gray-300 whitespace-pre-wrap">
+                        {JSON.stringify(preset.functionCalling.functionDeclarations)}
+                    </div>
+                </div>
+                )}
 
                 {/* Description */}
                 <div>
