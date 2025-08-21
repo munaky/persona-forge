@@ -1,7 +1,6 @@
-import { NextResponse } from "next/server";
-import { GoogleGenAI } from "@google/genai";
+import { Behavior, GoogleGenAI, Type } from "@google/genai";
 import { ChatRequestPayload } from "@/types/chat";
-import { resSuccess } from "@/lib/response-format";
+import axios from "axios";
 
 const ai = new GoogleGenAI({
     apiKey: process.env.GOOGLE_GEMINI_API_KEY
@@ -21,7 +20,10 @@ export async function POST(req: Request) {
             tools: [
                 body.preset.search ? {
                     googleSearch: {}
-                } : {}
+                } : {},
+                body.preset.functionCalling ? {
+                    functionDeclarations: body.preset.functionCalling.functionDeclarations
+                } : {},
             ]
         },
         history: body.preset.remember ? body.history : []
@@ -34,7 +36,19 @@ export async function POST(req: Request) {
     const stream = new ReadableStream({
         async start(controller) {
             for await (const chunk of res) {
-                controller.enqueue(new TextEncoder().encode(chunk.text));
+                let text = chunk.text || '';
+
+                if(chunk.functionCalls && chunk.functionCalls.length > 0){
+                    try {
+                        const res = await axios.post('http://localhost:4000/execute', chunk.functionCalls[0]);
+                        const callResult = res.data    
+                        text += `\n\nFunction Call Result:\n${callResult}\n\n`
+                    } catch (error) {
+                        text += `\n\nFunction Call Error:\n${error}\n\n`
+                    }
+                }
+
+                controller.enqueue(new TextEncoder().encode(text));
             }
             controller.close();
         },

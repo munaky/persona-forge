@@ -43,7 +43,7 @@ export default function Main() {
 
   return (
     <>
-    <div className="grid grid-cols-12 overflow-hidden h-screen max-w-screen">
+    <div className="grid grid-cols-12 overflow-hidden h-screen max-h-screen max-w-screen">
       <FullScreenLoader loading={loading} />
       <div className="col-span-9">
         <ChatBoard chatState={chatState} setChatState={setChatState} />

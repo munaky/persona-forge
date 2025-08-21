@@ -79,7 +79,7 @@ export default function ChatBoard({ chatState, setChatState }: ChatBoardProps) {
     const selectedFiles = e.target.files?.[0]
     if (!selectedFiles) return;
     if (files.find(f => getFileId(f) == getFileId(selectedFiles))) return;
-    if (!(selectedFiles.type in allowedMimeType)) return;
+    // if (!(selectedFiles.type in allowedMimeType)) return;
 
     setFiles(prev => [...prev, selectedFiles]);
 
@@ -173,7 +173,7 @@ export default function ChatBoard({ chatState, setChatState }: ChatBoardProps) {
               }`}
           >
             <div
-              className={`rounded-2xl px-4 py-2 max-w-[80%] ${msg.role === "user"
+              className={`relative rounded-2xl px-4 py-2 max-w-[80%] ${msg.role === "user"
                 ? "bg-blue-600 text-white"
                 : "bg-gray-800 text-gray-100"
                 }`}
@@ -225,6 +225,7 @@ export default function ChatBoard({ chatState, setChatState }: ChatBoardProps) {
           <input
             ref={inputFileRef}
             onChange={handleInputFile}
+            disabled={loading}
             type="file"
             id="fileInput"
             className="hidden"
