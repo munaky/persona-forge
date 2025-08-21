@@ -15,7 +15,6 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ChatState } from "@/types/chat";
 import { useEffect, useState } from "react";
-import { presetsApi } from "@/lib/api/client/preset";
 
 interface EditPresetDialogProps {
   chatState: ChatState | null;
@@ -31,6 +30,7 @@ export default function EditPresetDialog({
   const [systemInstruction, setSystemInstruction] = useState<string>(chatState?.preset.config.systemInstruction || "");
   const [remember, setRemember] = useState<boolean>(chatState?.preset.remember || false);
   const [thinking, setThinking] = useState<boolean>(chatState?.preset.thinking || false);
+  const [search, setSearch] = useState<boolean>(chatState?.preset.search || false);
 
   useEffect(() => {
     if (chatState?.preset) {
@@ -39,6 +39,7 @@ export default function EditPresetDialog({
       setSystemInstruction(chatState.preset.config.systemInstruction);
       setRemember(chatState.preset.remember);
       setThinking(chatState.preset.thinking);
+      setSearch(chatState.preset.search || false)
     }
   }, [chatState]);
 
@@ -51,6 +52,7 @@ export default function EditPresetDialog({
         config: { ...chatState.preset.config, systemInstruction },
         remember,
         thinking,
+        search,
       };
 
       setChatState({ ...chatState, preset: newPreset });
@@ -122,6 +124,15 @@ export default function EditPresetDialog({
               onCheckedChange={(val) => setThinking(!!val)}
             />
             <Label htmlFor="thinking">Thinking</Label>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="search"
+              checked={search}
+              onCheckedChange={(val) => setSearch(!!val)}
+            />
+            <Label htmlFor="search">Search</Label>
           </div>
 
           {/* Save Button */}
