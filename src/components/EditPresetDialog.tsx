@@ -38,6 +38,7 @@ export default function EditPresetDialog({
       : ''
   );
   const [webhookUrl, setWebhookUrl] = useState<string>(chatState?.preset.functionCalling?.webhookUrl || '')
+  console.log('function declarations', functionDeclarations);
 
   useEffect(() => {
     if (chatState?.preset) {
@@ -59,7 +60,7 @@ export default function EditPresetDialog({
     if (chatState) {
       let parsedFnDeclarations: any;
       try {
-        parsedFnDeclarations = functionDeclarations;
+        if(functionCalling) parsedFnDeclarations = JSON.parse(functionDeclarations);
       } catch (error) {
         alert('unable to parse function declarations');
         return;
@@ -75,7 +76,7 @@ export default function EditPresetDialog({
         search,
         ...(functionCalling ? {
           functionCalling: {
-            functionDeclarations: JSON.parse(parsedFnDeclarations),
+            functionDeclarations: parsedFnDeclarations,
             webhookUrl
           }
         } : {})
@@ -90,7 +91,7 @@ export default function EditPresetDialog({
       <DialogTrigger asChild>
         <Button>Edit Preset</Button>
       </DialogTrigger>
-      <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto" aria-describedby={undefined}>
+      <DialogContent className="max-w-[90%] lg:max-w-md max-h-[80vh] overflow-y-auto" aria-describedby={undefined}>
         <DialogHeader>
           <DialogTitle>Preset Editor</DialogTitle>
         </DialogHeader>
@@ -134,40 +135,70 @@ export default function EditPresetDialog({
           </div>
 
           {/* Checkboxes */}
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="remember"
-              checked={remember}
-              onCheckedChange={(val) => setRemember(!!val)}
-            />
-            <Label htmlFor="remember">Remember</Label>
-          </div>
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col space-y-1">
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="remember"
+                  checked={remember}
+                  onCheckedChange={(val) => setRemember(!!val)}
+                />
+                <Label htmlFor="remember" className="text-sm cursor-pointer">
+                  Remember
+                </Label>
+              </div>
+              <p className="text-sm text-gray-400 pl-6">
+                Stores and recalls past conversations.
+              </p>
+            </div>
 
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="thinking"
-              checked={thinking}
-              onCheckedChange={(val) => setThinking(!!val)}
-            />
-            <Label htmlFor="thinking">Thinking</Label>
-          </div>
+            <div className="flex flex-col space-y-1">
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="thinking"
+                  checked={thinking}
+                  onCheckedChange={(val) => setThinking(!!val)}
+                />
+                <Label htmlFor="thinking" className="text-sm cursor-pointer">
+                  Thinking
+                </Label>
+              </div>
+              <p className="text-sm text-gray-400 pl-6">
+                Improves reasoning before answering.
+              </p>
+            </div>
 
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="search"
-              checked={search}
-              onCheckedChange={(val) => setSearch(!!val)}
-            />
-            <Label htmlFor="search">Search</Label>
-          </div>
+            <div className="flex flex-col space-y-1">
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="search"
+                  checked={search}
+                  onCheckedChange={(val) => setSearch(!!val)}
+                />
+                <Label htmlFor="search" className="text-sm cursor-pointer">
+                  Search
+                </Label>
+              </div>
+              <p className="text-sm text-gray-400 pl-6">
+                Finds up-to-date info from the web.
+              </p>
+            </div>
 
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="functionCalling"
-              checked={functionCalling ? true : false}
-              onCheckedChange={(val) => setFunctionCalling(!!val)}
-            />
-            <Label htmlFor="functionCalling">Function Calling</Label>
+            <div className="flex flex-col space-y-1">
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="functionCalling"
+                  checked={functionCalling ? true : false}
+                  onCheckedChange={(val) => setFunctionCalling(!!val)}
+                />
+                <Label htmlFor="functionCalling" className="text-sm cursor-pointer">
+                  Function Calling
+                </Label>
+              </div>
+              <p className="text-sm text-gray-400 pl-6">
+                Executes external functions or APIs.
+              </p>
+            </div>
           </div>
 
           {/* Function Declarations */}

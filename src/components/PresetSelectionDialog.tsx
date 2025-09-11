@@ -93,9 +93,9 @@ export default function PresetSelectionDialog({
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button className="w-full">Change Preset</Button>
+                <Button className="lg:w-full">Change Preset</Button>
             </DialogTrigger>
-            <DialogContent className="max-w-md" aria-describedby={undefined}>
+            <DialogContent className="max-w-[90%] lg:max-w-md" aria-describedby={undefined}>
                 <DialogHeader>
                     <DialogTitle>Preset Selection</DialogTitle>
                 </DialogHeader>
